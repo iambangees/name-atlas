@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Name Atlas — what your name means, and how the world says it</title>
+<meta name="description" content="Paste a name: get its meaning and origin, how it sounds, and the shapes it takes in languages around the world.">
+<meta property="og:title" content="Name Atlas — every name has a world tour">
+<meta property="og:description" content="What your name means, how it sounds, and what it becomes in other languages.">
+<meta property="og:type" content="website">
+<meta property="og:image" content="banner.png">
+<meta name="twitter:card" content="summary_large_image">
+<style>
+  :root { --bg:#10131a; --card:#1a1f2b; --line:#2a3040; --text:#f2f0ea; --muted:#a7adbd; --accent:#ffb454; --accent2:#5ec8c0; }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background:var(--bg); color:var(--text); }
+  .wrap { max-width: 680px; margin: 0 auto; padding: 28px 16px 56px; }
+  h1 { font-size: 34px; margin: 6px 0 2px; letter-spacing: .2px; }
+  h1 .dot { color: var(--accent); }
+  .tag { color: var(--muted); margin: 0 0 22px; line-height: 1.5; }
+  .search { position: relative; }
+  input[type=text] { width:100%; background:#0c0f16; color:var(--text); border:1px solid var(--line); border-radius:12px; padding: 15px 16px; font-size: 18px; }
+  input[type=text]:focus { outline: 2px solid var(--accent); border-color: transparent; }
+  .suggest { position:absolute; left:0; right:0; top: calc(100% + 6px); background:var(--card); border:1px solid var(--line); border-radius:12px; overflow:hidden; z-index: 5; display:none; }
+  .suggest div { padding: 11px 14px; cursor:pointer; font-size: 16px; border-bottom: 1px solid var(--line); }
+  .suggest div:last-child { border-bottom: 0; }
+  .suggest div:hover { background:#232939; }
+  .suggest small { color: var(--muted); margin-left: 8px; }
+  .row { display:flex; gap:10px; margin-top: 12px; flex-wrap: wrap; }
+  button { background: var(--accent); color:#191104; border:0; border-radius: 10px; padding: 12px 18px; font-size: 15px; font-weight: 700; cursor: pointer; }
+  button.ghost { background: transparent; color: var(--text); border: 1px solid var(--line); font-weight: 600; }
+  .chips { margin-top: 16px; display:flex; gap:8px; flex-wrap: wrap; }
+  .chip { border:1px solid var(--line); color:var(--muted); border-radius: 999px; padding: 6px 12px; font-size: 13.5px; cursor:pointer; background: transparent; font-weight: 500; }
+  .chip:hover { color: var(--text); border-color: var(--accent); }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 22px; margin-top: 22px; display:none; }
+  .card h2 { font-size: 40px; margin: 0 0 2px; }
+  .say { color: var(--accent2); font-size: 16px; margin-bottom: 10px; }
+  .meta { display:flex; gap:8px; flex-wrap: wrap; margin-bottom: 14px; }
+  .pill { background:#0c0f16; border:1px solid var(--line); color:var(--muted); border-radius:999px; padding: 4px 11px; font-size: 12.5px; }
+  .meaning { font-size: 17px; line-height: 1.6; margin: 0 0 18px; }
+  .card h3 { margin: 18px 0 8px; font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+  .forms { display:grid; grid-template-columns: 1fr 1fr; gap: 8px 18px; }
+  .forms div { border-bottom: 1px solid var(--line); padding: 7px 0; font-size: 15px; }
+  .forms span { color: var(--muted); display:block; font-size: 12px; text-transform: uppercase; letter-spacing:.04em; }
+  .sounds { background:#141a26; border-left: 3px solid var(--accent); padding: 12px 14px; border-radius: 0 10px 10px 0; line-height: 1.55; font-size: 15px; }
+  .share { display:flex; gap:10px; margin-top: 18px; flex-wrap: wrap; }
+  .notfound { display:none; margin-top: 22px; background: var(--card); border:1px solid var(--line); border-radius: 16px; padding: 22px; line-height: 1.6; }
+  .hero-img { width: 100%; border-radius: 16px; border: 1px solid var(--line); margin: 4px 0 20px; display: block; }
+  .foot { color: var(--muted); font-size: 13px; line-height: 1.6; margin-top: 30px; }
+  a { color: var(--accent); }
+  @media (max-width: 520px) { .forms { grid-template-columns: 1fr; } .card h2 { font-size: 32px; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Name Atlas<span class="dot">.</span></h1>
+  <p class="tag">Every name has a world tour. Type a name and see what it means, where it comes from, how it sounds — and the shapes it takes in other languages.</p>
+  <img class="hero-img" src="banner.png" alt="A world map drawn out of names in many languages and scripts">
+
+  <div class="search">
+    <input type="text" id="q" placeholder="Try: Abubakar, Ngozi, Mateo, Yuki…" autocomplete="off">
+    <div class="suggest" id="suggest"></div>
+  </div>
+  <div class="row">
+    <button id="btnGo">Explore this name</button>
+    <button class="ghost" id="btnRandom">🎲 Surprise me</button>
+  </div>
+  <div class="chips" id="chips"></div>
+
+  <div class="card" id="card">
+    <h2 id="nName"></h2>
+    <div class="say" id="nSay"></div>
+    <div class="meta" id="nMeta"></div>
+    <p class="meaning" id="nMeaning"></p>
+    <div id="nFormsWrap">
+      <h3>Around the world, this name becomes</h3>
+      <div class="forms" id="nForms"></div>
+    </div>
+    <div id="nSoundsWrap">
+      <h3>What the world hears</h3>
+      <div class="sounds" id="nSounds"></div>
+    </div>
+    <div class="share">
+      <button id="btnCopy">Copy link to this name</button>
+      <button class="ghost" id="btnCard">Download name card (image)</button>
+    </div>
+  </div>
+
+  <div class="notfound" id="notfound"></div>
+
+  <p class="foot">Name Atlas is a small, hand-curated collection — <span id="count"></span> names and growing. Meanings are the traditional etymologies; names are old travellers and sometimes carry more than one story. A name not here yet isn't a name without a meaning — it's a name we haven't reached. Built by Bangees.</p>
+</div>
+
+<script src="data.js"></script>
+<script>
+const $ = (id) => document.getElementById(id);
+const byName = new Map(NAMES.map(n => [n.name.toLowerCase(), n]));
+$("count").textContent = NAMES.length;
+
+const POPULAR = ["Abubakar","Ngozi","John","Yuki","Adewale","Layla","Mateo","Amara","Kofi","Sophia","Hiro","Zainab"];
+$("chips").innerHTML = POPULAR.filter(n => byName.has(n.toLowerCase())).map(n => `<button class="chip" data-name="${n}">${n}</button>`).join("");
+document.querySelectorAll(".chip").forEach(ch => ch.onclick = () => show(ch.dataset.name));
+
+function esc(s) { return s.replace(/</g, "&lt;"); }
+
+function show(raw) {
+  const key = (raw || "").trim().toLowerCase();
+  const n = byName.get(key);
+  $("suggest").style.display = "none";
+  if (!n) {
+    $("card").style.display = "none";
+    const close = NAMES.filter(x => x.name.toLowerCase().startsWith(key.slice(0, 3)) && key.length >= 3).slice(0, 5);
+    $("notfound").style.display = "block";
+    $("notfound").innerHTML = `<b>${esc(raw || "That name")}</b> isn't in the atlas yet.` +
+      (close.length ? ` Did you mean: ${close.map(c => `<a href="#" data-name="${c.name}">${c.name}</a>`).join(", ")}?` : "") +
+      `<br><span style="color:var(--muted)">The atlas grows name by name — try one of the popular names above meanwhile.</span>`;
+    $("notfound").querySelectorAll("a").forEach(a => a.onclick = (e) => { e.preventDefault(); show(a.dataset.name); });
+    return;
+  }
+  $("notfound").style.display = "none";
+  $("card").style.display = "block";
+  $("nName").textContent = n.name;
+  $("nSay").textContent = "say it: " + n.say;
+  $("nMeta").innerHTML = `<span class="pill">Origin: ${esc(n.origin)}</span><span class="pill">${n.gender === "M" ? "Typically male" : n.gender === "F" ? "Typically female" : "Unisex"}</span>`;
+  $("nMeaning").textContent = n.meaning;
+  const forms = Object.entries(n.forms || {});
+  $("nFormsWrap").style.display = forms.length ? "block" : "none";
+  $("nForms").innerHTML = forms.map(([lang, form]) => `<div><span>${esc(lang)}</span>${esc(form)}</div>`).join("");
+  $("nSoundsWrap").style.display = n.sounds ? "block" : "none";
+  $("nSounds").textContent = n.sounds || "";
+  history.replaceState(null, "", "?name=" + encodeURIComponent(n.name));
+  $("card").scrollIntoView({ behavior: "smooth", block: "start" });
+  current = n;
+}
+
+let current = null;
+$("btnGo").onclick = () => show($("q").value);
+$("q").addEventListener("keydown", (e) => { if (e.key === "Enter") show($("q").value); });
+$("q").addEventListener("input", () => {
+  const v = $("q").value.trim().toLowerCase();
+  if (v.length < 2) { $("suggest").style.display = "none"; return; }
+  const hits = NAMES.filter(n => n.name.toLowerCase().includes(v)).slice(0, 7);
+  if (!hits.length) { $("suggest").style.display = "none"; return; }
+  $("suggest").innerHTML = hits.map(n => `<div data-name="${n.name}">${n.name}<small>${esc(n.origin)}</small></div>`).join("");
+  $("suggest").style.display = "block";
+  $("suggest").querySelectorAll("div").forEach(d => d.onclick = () => { $("q").value = d.dataset.name; show(d.dataset.name); });
+});
+document.addEventListener("click", (e) => { if (!e.target.closest(".search")) $("suggest").style.display = "none"; });
+$("btnRandom").onclick = () => { const n = NAMES[Math.floor(Math.random() * NAMES.length)]; $("q").value = n.name; show(n.name); };
+
+$("btnCopy").onclick = async () => {
+  if (!current) return;
+  const url = location.origin + location.pathname + "?name=" + encodeURIComponent(current.name);
+  try { await navigator.clipboard.writeText(url); $("btnCopy").textContent = "Copied ✓"; setTimeout(() => $("btnCopy").textContent = "Copy link to this name", 1600); }
+  catch (e) { $("btnCopy").textContent = url; }
+};
+
+$("btnCard").onclick = () => {
+  if (!current) return;
+  const n = current;
+  const cv = document.createElement("canvas"); cv.width = 1200; cv.height = 630;
+  const g = cv.getContext("2d");
+  const grad = g.createLinearGradient(0, 0, 1200, 630); grad.addColorStop(0, "#10131a"); grad.addColorStop(1, "#1d2536");
+  g.fillStyle = grad; g.fillRect(0, 0, 1200, 630);
+  g.fillStyle = "#ffb454"; g.beginPath(); g.arc(1120, 70, 130, 0, Math.PI * 2); g.globalAlpha = .18; g.fill(); g.globalAlpha = 1;
+  g.fillStyle = "#5ec8c0"; g.font = "600 30px -apple-system, 'Segoe UI', Roboto, sans-serif";
+  g.fillText("say it: " + n.say, 70, 110);
+  g.fillStyle = "#f2f0ea"; g.font = "700 110px -apple-system, 'Segoe UI', Roboto, sans-serif";
+  g.fillText(n.name, 66, 235);
+  g.fillStyle = "#a7adbd"; g.font = "500 30px -apple-system, 'Segoe UI', Roboto, sans-serif";
+  g.fillText("Origin: " + n.origin, 70, 295);
+  g.fillStyle = "#f2f0ea"; g.font = "400 36px -apple-system, 'Segoe UI', Roboto, sans-serif";
+  const words = n.meaning.split(" "); let line = "", y = 370;
+  for (const w of words) { if (g.measureText(line + w).width > 1040) { g.fillText(line.trim(), 70, y); y += 50; line = ""; if (y > 520) break; } line += w + " "; }
+  if (y <= 520) g.fillText(line.trim(), 70, y);
+  g.fillStyle = "#ffb454"; g.font = "700 28px -apple-system, 'Segoe UI', Roboto, sans-serif";
+  g.fillText("Name Atlas — every name has a world tour", 70, 585);
+  const a = document.createElement("a"); a.download = n.name.toLowerCase() + "-name-card.png"; a.href = cv.toDataURL("image/png"); a.click();
+};
+
+const start = new URLSearchParams(location.search).get("name");
+if (start && byName.has(start.toLowerCase())) { $("q").value = start; show(start); }
+else show("Abubakar");
+</script>
+</body>
+</html>
