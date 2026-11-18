@@ -12,7 +12,7 @@ A small, hand-curated atlas of names. Type a name and get:
 
 ## How it works
 
-One static page (`site/index.html`) plus a curated dataset (`site/data.js`, 107 names at launch: Nigerian — Yoruba, Igbo, Hausa — Arabic, European classics, and names from Asia, Africa and beyond). No backend, no tracking, no accounts. Search runs entirely in the visitor's browser.
+One static page (`site/index.html`) plus a curated dataset (`site/data.js`, 231 names and growing: Nigerian — Yoruba, Igbo, Hausa and more — Arabic, European classics, the full Akan day-name week, and names from Asia, Africa and beyond). No backend, no tracking, no accounts. Search runs entirely in the visitor's browser.
 
 Names not in the atlas yet get an honest "not here yet" with close matches — the atlas grows name by name, and entries are added only when the etymology is solid.
 
