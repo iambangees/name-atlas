@@ -94,25 +94,47 @@
 <script src="data.js"></script>
 <script>
 const $ = (id) => document.getElementById(id);
-const byName = new Map(NAMES.map(n => [n.name.toLowerCase(), n]));
+const norm = (s) => (s || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/['’]/g, "").trim();
+const byName = new Map(NAMES.map(n => [norm(n.name), n]));
+const byForm = new Map();
+for (const n of NAMES) for (const f of Object.values(n.forms || {})) { const k = norm(f); if (!byName.has(k) && !byForm.has(k)) byForm.set(k, n); }
 $("count").textContent = NAMES.length;
 
-const POPULAR = ["Abubakar","Ngozi","John","Yuki","Adewale","Layla","Mateo","Amara","Kofi","Sophia","Hiro","Zainab"];
-$("chips").innerHTML = POPULAR.filter(n => byName.has(n.toLowerCase())).map(n => `<button class="chip" data-name="${n}">${n}</button>`).join("");
+function resolve(raw) {
+  const k = norm(raw);
+  if (!k) return null;
+  if (byName.has(k)) return byName.get(k);
+  if (typeof ALIASES !== "undefined" && ALIASES[k] && byName.has(norm(ALIASES[k]))) return byName.get(norm(ALIASES[k]));
+  if (byForm.has(k)) return byForm.get(k);
+  return null;
+}
+function lev(a, b) {
+  const m = a.length, n = b.length; if (Math.abs(m - n) > 3) return 99;
+  const d = Array.from({ length: m + 1 }, (_, i) => [i, ...Array(n).fill(0)]);
+  for (let j = 1; j <= n; j++) d[0][j] = j;
+  for (let i = 1; i <= m; i++) for (let j = 1; j <= n; j++) d[i][j] = Math.min(d[i-1][j] + 1, d[i][j-1] + 1, d[i-1][j-1] + (a[i-1] === b[j-1] ? 0 : 1));
+  return d[m][n];
+}
+function closest(raw, limit) {
+  const k = norm(raw); if (k.length < 3) return [];
+  return NAMES.map(n => ({ n, d: lev(k, norm(n.name)) })).filter(x => x.d <= Math.max(2, Math.floor(k.length / 3))).sort((a, b) => a.d - b.d).slice(0, limit).map(x => x.n);
+}
+
+const POPULAR = ["Abubakar","Muhammad","Ngozi","John","Yuki","Adewale","Layla","Mateo","Amara","Kofi","Sophia","Hiro","Zainab"];
+$("chips").innerHTML = POPULAR.filter(n => byName.has(norm(n))).map(n => `<button class="chip" data-name="${n}">${n}</button>`).join("");
 document.querySelectorAll(".chip").forEach(ch => ch.onclick = () => show(ch.dataset.name));
 
 function esc(s) { return s.replace(/</g, "&lt;"); }
 
 function show(raw) {
-  const key = (raw || "").trim().toLowerCase();
-  const n = byName.get(key);
+  const n = resolve(raw);
   $("suggest").style.display = "none";
   if (!n) {
     $("card").style.display = "none";
-    const close = NAMES.filter(x => x.name.toLowerCase().startsWith(key.slice(0, 3)) && key.length >= 3).slice(0, 5);
+    const close = closest(raw, 5);
     $("notfound").style.display = "block";
     $("notfound").innerHTML = `<b>${esc(raw || "That name")}</b> isn't in the atlas yet.` +
-      (close.length ? ` Did you mean: ${close.map(c => `<a href="#" data-name="${c.name}">${c.name}</a>`).join(", ")}?` : "") +
+      (close.length ? ` Closest matches: ${close.map(c => `<a href="#" data-name="${c.name}">${c.name}</a>`).join(", ")}.` : "") +
       `<br><span style="color:var(--muted)">The atlas grows name by name — try one of the popular names above meanwhile.</span>`;
     $("notfound").querySelectorAll("a").forEach(a => a.onclick = (e) => { e.preventDefault(); show(a.dataset.name); });
     return;
@@ -137,11 +159,16 @@ let current = null;
 $("btnGo").onclick = () => show($("q").value);
 $("q").addEventListener("keydown", (e) => { if (e.key === "Enter") show($("q").value); });
 $("q").addEventListener("input", () => {
-  const v = $("q").value.trim().toLowerCase();
+  const v = norm($("q").value);
   if (v.length < 2) { $("suggest").style.display = "none"; return; }
-  const hits = NAMES.filter(n => n.name.toLowerCase().includes(v)).slice(0, 7);
+  const seen = new Set(); const hits = [];
+  const push = (n, label) => { if (n && !seen.has(norm(n.name)) && hits.length < 7) { seen.add(norm(n.name)); hits.push({ n, label }); } };
+  for (const n of NAMES) if (norm(n.name).startsWith(v)) push(n, n.origin);
+  for (const n of NAMES) if (norm(n.name).includes(v)) push(n, n.origin);
+  if (typeof ALIASES !== "undefined" && ALIASES[v]) push(resolve(v), "also spelled / short for this");
+  for (const [fk, n] of byForm) if (fk.startsWith(v) || fk.includes(v)) push(n, "a form of " + n.name);
   if (!hits.length) { $("suggest").style.display = "none"; return; }
-  $("suggest").innerHTML = hits.map(n => `<div data-name="${n.name}">${n.name}<small>${esc(n.origin)}</small></div>`).join("");
+  $("suggest").innerHTML = hits.map(h => `<div data-name="${h.n.name}">${h.n.name}<small>${esc(h.label)}</small></div>`).join("");
   $("suggest").style.display = "block";
   $("suggest").querySelectorAll("div").forEach(d => d.onclick = () => { $("q").value = d.dataset.name; show(d.dataset.name); });
 });
@@ -179,7 +206,7 @@ $("btnCard").onclick = () => {
 };
 
 const start = new URLSearchParams(location.search).get("name");
-if (start && byName.has(start.toLowerCase())) { $("q").value = start; show(start); }
+if (start && resolve(start)) { $("q").value = start; show(start); }
 else show("Abubakar");
 </script>
 </body>
