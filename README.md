@@ -12,7 +12,7 @@ A small, hand-curated atlas of names. Type a name and get:
 
 ## How it works
 
-One static page (`site/index.html`) plus a curated dataset (`site/data.js`, 445 names and growing: Nigerian — Yoruba, Igbo, Hausa and more — Arabic, European classics, the full Akan day-name week, and names from Asia, Africa and beyond). No backend, no tracking, no accounts. Search runs entirely in the visitor's browser — and it's forgiving: 238 spelling variants and pet forms (Mohammed, Liz, Femi…) resolve to their canonical entry, foreign forms find their home name (Ebubekir → Abubakar, Yakubu → Jacob), and near-miss typos get closest-match suggestions instead of a dead end.
+One static page (`site/index.html`) plus a curated dataset (`site/data.js`, 571 names and growing: Nigerian — Yoruba, Igbo, Hausa and more — Arabic, European classics, the full Akan day-name week, and names from Asia, Africa and beyond). No backend, no tracking, no accounts. Search runs entirely in the visitor's browser — and it's forgiving: 244 spelling variants and pet forms (Mohammed, Liz, Femi…) resolve to their canonical entry, foreign forms find their home name (Ebubekir → Abubakar, Yakubu → Jacob), and near-miss typos get closest-match suggestions instead of a dead end.
 
 Names not in the atlas yet get an honest "not here yet" with close matches — the atlas grows name by name, and entries are added only when the etymology is solid.
 
